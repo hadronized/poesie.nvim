@@ -65,19 +65,7 @@
 
 local M = {}
 
--- TODO: move in another module
-local existing_plugins_cache = {}
-local function plugin_exists(name)
-  local cached = existing_plugins_cache[name]
-  if cached ~= nil then
-    return cached
-  end
-
-  local exists = pcall(require, name)
-  existing_plugins_cache[name] = exists
-
-  return exists
-end
+local plugin_exists = require'poetry.plugin'.plugin_exists
 
 local function configure_diagnostics(c)
   vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {

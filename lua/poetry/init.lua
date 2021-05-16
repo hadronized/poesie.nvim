@@ -29,3 +29,11 @@ if lsp_config_path:exists() then
   local config = json.decode(lsp_config_path:read())
   require'poetry.mapper.lsp'.interpret(config)
 end
+
+-- Treesitter configuration.
+local treesitter_config_path = config_dir / 'treesitter.json'
+if treesitter_config_path:exists() then
+  log('reading Treesitter configuration', 'foo')
+  local config = json.decode(treesitter_config_path:read())
+  require'poetry.mapper.treesitter'.interpret(config)
+end
