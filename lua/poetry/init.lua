@@ -37,3 +37,11 @@ if treesitter_config_path:exists() then
   local config = json.decode(treesitter_config_path:read())
   require'poetry.mapper.treesitter'.interpret(config)
 end
+
+-- Plugin configuration.
+local plugins_config_path = config_dir / 'plugins.json'
+if plugins_config_path:exists() then
+  log('reading plugins configuration', 'foo')
+  local config = json.decode(plugins_config_path:read())
+  require'poetry.mapper.plugins'.interpret(config)
+end
