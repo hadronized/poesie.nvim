@@ -19,7 +19,8 @@
 --       "documentation": <true>,
 --       "detail": <true>,
 --       "additional-text-edits": <true>
---     }
+--     },
+--     "lsp_status": <true>
 --   },
 --
 --   "symbol-kind-labels": {

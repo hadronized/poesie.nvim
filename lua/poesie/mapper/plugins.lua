@@ -67,9 +67,86 @@ local function setup_override_lsp_extensions(c)
   end
 end
 
+local function setup_override_telescope(c)
+  local sorters = {
+    get_fuzzy_file = require'telescope.sorters'.get_fuzzy_file,
+    get_generic_fuzzy_sorter = require'telescope.sorters'.get_generic_fuzzy_sorter,
+    get_levenshtein_sorter = require'telescope.sorters'.get_levenshtein_sorter,
+    get_fzy_sorter = require'telescope.sorters'.get_fzy_sorter,
+    fuzzy_with_index_bias = require'telescope.sorters'.fuzzy_with_index_bias,
+  }
+
+  local previewers = {
+    vim_buffer_cat = require'telescope.previewers'.vim_buffer_cat.new,
+    vim_buffer_vimgrep = require'telescope.previewers'.vim_buffer_vimgrep.new,
+    vim_buffer_qflist = require'telescope.previewers'.vim_buffer_qflist.new,
+    cat = require'telescope.previewers'.cat.new,
+    vimgrep = require'telescope.previewers'.vimgrep.new,
+    qflist = require'telescope.previewers'.qflist.new,
+  }
+
+  local config = {}
+
+  if c.defaults.file_sorter ~= nil then
+    config.file_sorter = sorters[c.defaults.file_sorter]
+  end
+
+  if c.defaults.generic_sorter ~= nil then
+    config.generic_sorter = sorters[c.defaults.generic_sorter]
+  end
+
+  if c.defaults.file_previewer ~= nil then
+    config.file_previewer = previewers[c.defaults.file_previewer]
+  end
+
+  if c.defaults.grep_previewer ~= nil then
+    config.grep_previewer = previewers[c.defaults.grep_previewer]
+  end
+
+  if c.defaults.qflist_previewer ~= nil then
+    config.qflist_previewer = previewers[c.defaults.qflist_previewer]
+  end
+
+  if c.defaults.mappings ~= nil then
+    local overriden_mappings = {}
+    for mode, mappings in pairs(c.defaults.mappings) do
+      local maps = {}
+      for key, action in pairs(mappings) do
+        maps[key] = require'telescope.actions'[action]
+      end
+
+      overriden_mappings[mode] = maps
+    end
+
+    config.mappings = overriden_mappings
+  end
+
+  require'telescope'.setup({ defaults = config })
+end
+
+-- FIXME: we need to allow passing configuration to telescope.setup; we should probably remove those overrides and move
+-- them in the override of telescope; it’s ugly but that extension system is by itself very annoying so meh meh meh
+-- FIXME: ensure the overrides are made _after_ the override of telescope… hard?
+local function setup_override_telescope_fzy_native()
+  require'telescope'.load_extension('fzy_native')
+end
+
+local function setup_override_telescope_fzf_native()
+  require'telescope'.load_extension('fzf')
+end
+
+local function setup_override_octo(c)
+  require'telescope'.load_extension('octo')
+  require'octo'.setup(c)
+end
+
 local setup_overrides = {
-  ["kyazdani42/nvim-tree.lua"] = setup_override_nvim_tree,
-  ["nvim-lua/lsp_extensions.nvim"] = setup_override_lsp_extensions,
+  ['kyazdani42/nvim-tree.lua'] = setup_override_nvim_tree,
+  ['nvim-lua/lsp_extensions.nvim'] = setup_override_lsp_extensions,
+  ['nvim-telescope/telescope.nvim'] = setup_override_telescope,
+  ['nvim-telescope/telescope-fzy-native.nvim'] = setup_override_telescope_fzy_native,
+  ['nvim-telescope/telescope-fzf-native.nvim'] = setup_override_telescope_fzf_native,
+  ['pwntester/octo.nvim'] = setup_override_octo,
 }
 
 local function packer_interpret(plugins)
@@ -133,12 +210,14 @@ local function packer_interpret(plugins)
         conf.config = function()
           local plugin = require(plug_name)
 
-          -- if the plugin exposes a setup function, configure it by passing the local configuration
+          -- look for setup overrides first
+          --
+          -- otherwise, if the plugin exposes a setup function, configure it by passing the local configuration
           -- otherwise, check if we have local override for it
-          if plugin.setup ~= nil then
-            plugin.setup(plug_conf.config)
-          elseif setup_overrides[original_plug_name] ~= nil then
+          if setup_overrides[original_plug_name] ~= nil then
             setup_overrides[original_plug_name](plug_conf.config)
+          elseif plugin.setup ~= nil then
+            plugin.setup(plug_conf.config)
           end
         end
       end
@@ -174,6 +253,11 @@ local function paq_interpret(plugins)
         plug_name = plug_conf.rename
       else
         plug_name = plug_name:match(".*/(.*)")
+
+        local plug_name_alt = plug_name:match('(.*)%.')
+        if plug_name_alt ~= nil then
+          plug_name = plug_name_alt
+        end
       end
 
       if plug_conf.branch ~= nil and type(plug_conf.branch) == 'string' then
@@ -192,15 +276,19 @@ local function paq_interpret(plugins)
 
       paq(conf)
 
-      if plugin_exists(plug_name) and plug_conf.config ~= nil and type(plug_conf.config) == 'table' then
-        local plugin = require(plug_name)
-
-        -- if the plugin exposes a setup function, configure it by passing the local configuration
+      if plug_conf.config ~= nil and type(plug_conf.config) == 'table' then
+        -- look for setup overrides first
+        --
+        -- otherwise, if the plugin exposes a setup function, configure it by passing the local configuration
         -- otherwise, check if we have local override for it
-        if plugin.setup ~= nil then
-          plugin.setup(plug_conf.config)
-        elseif setup_overrides[original_plug_name] ~= nil then
+        if setup_overrides[original_plug_name] ~= nil then
           setup_overrides[original_plug_name](plug_conf.config)
+        elseif plugin_exists(plug_name) then
+          local plugin = require(plug_name)
+
+          if plugin.setup ~= nil then
+            plugin.setup(plug_conf.config)
+          end
         end
       end
     end

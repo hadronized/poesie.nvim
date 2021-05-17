@@ -13,6 +13,7 @@ pictured as a tree of (possibly nested) key-value pairs.
   * [Neovim layer](#neovim-layer)
   * [LSP layer](#lsp-layer)
     * [`"diagnostics"`](#diagnostics)
+    * [`"capabilities"`](#capabilities)
   * [Treesitter layer](#treesitter-layer)
   * [Plugin layer](#plugin-layer)
   * [Keybindings layer](#keybindings-layer)
@@ -106,6 +107,14 @@ some candies if you have the right plugins installed. It is mean of several main
 | `"diagnostics.signs"`             | `boolean` | `true`        | Should diagnostics be using signs.            |
 | `"diagnostics.update_in_insert"`  | `boolean` | `false`       | Should diagnostics be updated in insert mode. |
 | `"diagnostics.severity_sort"`     | `boolean` | `false`       | Should diagnostics be sorted by severity.     |
+
+#### `"capabilities"`
+
+| Key                               | Type      | Default value      | Note                                 |
+| ---                               | ----      | -------------      | ----                                 |
+| `"capabilities.snippet"`          | `boolean` | `true`             | Should LSP provide snippets support. |
+| `"capabilities.resolve"`          | `array`   | N/A                | List of LSP properties to resolve. Possible values: `documentation`, `detail`, `additional-text-edits`. |
+| `"capabilities.lsp_status"`       | `boolean` | N/A                | Provide LSP status support for statuslines. |
 
 ### Treesitter layer
 
