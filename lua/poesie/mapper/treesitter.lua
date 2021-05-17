@@ -2,7 +2,7 @@
 
 local M = {}
 
-local plugin_exists = require'poetry.plugin'.plugin_exists
+local plugin_exists = require'poesie.plugin'.plugin_exists
 
 function M.interpret(c)
   if not plugin_exists('nvim-treesitter') then

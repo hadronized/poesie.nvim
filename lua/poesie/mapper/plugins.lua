@@ -16,7 +16,7 @@
 
 local M = {}
 
-local plugin_exists = require'poetry.plugin'.plugin_exists
+local plugin_exists = require'poesie.plugin'.plugin_exists
 
 local function setup_override_nvim_tree(c)
   local bindings = {}

@@ -1,6 +1,6 @@
 -- Vanilla Neovim configuration mapper.
 --
--- This module is responsible for mapping the poetry configuration for Neovim to
+-- This module is responsible for mapping the poesie configuration for Neovim to
 -- its Lua / VimL representation.
 --
 -- # Configuration

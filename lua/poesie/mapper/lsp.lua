@@ -65,7 +65,7 @@
 
 local M = {}
 
-local plugin_exists = require'poetry.plugin'.plugin_exists
+local plugin_exists = require'poesie.plugin'.plugin_exists
 
 local function configure_diagnostics(c)
   vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
@@ -168,7 +168,7 @@ local function extract_symbol_kind_labels(c)
 end
 
 local function configure_local_keybindings(bufnr, keybindings)
-  require'poetry.keybindings'.traverse_keybindings(keybindings, function(mode, seq, cmd, opts)
+  require'poesie.keybindings'.traverse_keybindings(keybindings, function(mode, seq, cmd, opts)
     vim.api.nvim_buf_set_keymap(bufnr, mode, seq, cmd, opts)
   end)
 end
