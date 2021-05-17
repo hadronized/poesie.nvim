@@ -51,11 +51,11 @@ local function setup_override_lsp_extensions(c)
       end
     end
 
-    au_string = au_string .. "*.rs :lua require'lsp_extensions'.inlay_hints { "
-    au_string = au_string .. 'highlight = ' .. rust_conf.highlight or 'Comment' .. ','
-    au_string = au_string .. 'prefix = ' .. rust_conf.prefix or ' » ' .. ','
-    au_string = au_string .. 'aligned = ' .. rust_conf.aligned or 'false' .. ','
-    au_string = au_string .. 'only_current_line = ' .. rust_conf.only_current_line or 'false' .. ','
+    au_string = au_string .. " *.rs :lua require'lsp_extensions'.inlay_hints { "
+    au_string = au_string .. 'highlight = ' .. (rust_conf.highlight or 'Comment') .. ','
+    au_string = au_string .. 'prefix = ' .. (rust_conf.prefix or ' » ') .. ','
+    au_string = au_string .. 'aligned = ' .. (rust_conf.aligned or 'false') .. ','
+    au_string = au_string .. 'only_current_line = ' .. (rust_conf.only_current_line or 'false') .. ','
 
     au_string = au_string .. 'enabled = { '
     for _, enabled in pairs(rust_conf.enabled or { 'ChainingHint' }) do
@@ -76,6 +76,8 @@ local function packer_interpret(plugins)
   if not plugin_exists('packer') then
     return
   end
+
+  error('packer doesn’t work as expected and hence support is not complete; sorry, have a hug')
 
   vim.cmd [[packadd packer.nvim]]
   require('packer').startup(function(use)
@@ -134,9 +136,9 @@ local function packer_interpret(plugins)
           -- if the plugin exposes a setup function, configure it by passing the local configuration
           -- otherwise, check if we have local override for it
           if plugin.setup ~= nil then
-            plugin.setup(conf.config)
+            plugin.setup(plug_conf.config)
           elseif setup_overrides[original_plug_name] ~= nil then
-            setup_overrides[original_plug_name](conf.config)
+            setup_overrides[original_plug_name](plug_conf.config)
           end
         end
       end
@@ -146,8 +148,68 @@ local function packer_interpret(plugins)
   end)
 end
 
+local function paq_interpret(plugins)
+  vim.cmd [[packadd paq-nvim]]
+
+  if not plugin_exists('paq-nvim') then
+    error('paq not installed ffs')
+    return
+  end
+
+  local paq = require'paq-nvim'.paq
+
+  if plugins['savq/paq-nvm'] == nil then
+    paq { 'savq/paq-nvim', opt = true }
+  end
+
+  for plug_name, plug_conf in pairs(plugins) do
+    if plug_conf.enable == nil or plug_conf.enable then
+      local original_plug_name = plug_name
+      local conf = { plug_name }
+
+      if plug_conf.rename ~= nil and type(plug_conf.rename) == 'string' then
+        conf.as = plug_conf.rename
+
+        -- used later for configuration purposes
+        plug_name = plug_conf.rename
+      else
+        plug_name = plug_name:match(".*/(.*)")
+      end
+
+      if plug_conf.branch ~= nil and type(plug_conf.branch) == 'string' then
+        conf.branch = plug_conf.branch
+      end
+
+      if plug_conf.after ~= nil and type(plug_conf.after) == 'string' then
+        conf.run = plug_conf.after
+      end
+
+      if plug_conf.global_setup ~= nil and type(plug_conf.global_setup) == 'table' then
+        for key, value in pairs(plug_conf.global_setup) do
+          vim.g[key] = value
+        end
+      end
+
+      paq(conf)
+
+      if plugin_exists(plug_name) and plug_conf.config ~= nil and type(plug_conf.config) == 'table' then
+        local plugin = require(plug_name)
+
+        -- if the plugin exposes a setup function, configure it by passing the local configuration
+        -- otherwise, check if we have local override for it
+        if plugin.setup ~= nil then
+          plugin.setup(plug_conf.config)
+        elseif setup_overrides[original_plug_name] ~= nil then
+          setup_overrides[original_plug_name](plug_conf.config)
+        end
+      end
+    end
+  end
+end
+
 local packagers = {
-  packer = packer_interpret
+  packer = packer_interpret,
+  paq = paq_interpret,
 }
 
 local function is_valid_packager(name)

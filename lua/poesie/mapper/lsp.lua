@@ -7,10 +7,10 @@
 -- {
 --   "diagnostics": {
 --     "underline": <true>,
---     "virtual-text": <true>,
+--     "virtual_text": <true>,
 --     "signs": <true>,
 --     "update_in_insert": <false>,
---     "severity-sort": <false>
+--     "severity_sort": <false>
 --   },
 --
 --   "capabilities": {
